@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node ./node_modules/tsx/dist/cli.mjs watch src/server.ts",
-    "build": "node ./node_modules/esbuild/bin/esbuild src/server.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
+    "build": "node build.mjs",
     "start": "node dist/server.js",
     "seed": "node ./node_modules/tsx/dist/cli.mjs src/seed.ts",
     "create-admin": "node ./node_modules/tsx/dist/cli.mjs src/create-admin.ts"
