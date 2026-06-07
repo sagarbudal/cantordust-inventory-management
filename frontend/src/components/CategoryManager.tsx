@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../lib/api';
+import { exportVideosToXlsx } from '../lib/exportVideosXlsx';
 import { 
   FolderLock, Tag, Plus, Trash2, Search, Download, 
   FileVideo, RefreshCw, AlertCircle, CheckCircle2, ListFilter
@@ -134,41 +135,15 @@ export default function CategoryManager({ videos, onRefresh }: CategoryManagerPr
     return isTextMatch && isCategoryMatch;
   });
 
-  // Export filtered search result table or entire category to CSV structure
   const handleDownloadXls = () => {
     if (filteredVideos.length === 0) {
       setErrorMsg("No records to export.");
       return;
     }
 
-    let csvContent = "";
-    csvContent += "S.N.,Video Name,Unique Code,Recorded Date,Operator Name,Factory Name,Factory Code\n";
-
-    filteredVideos.forEach((v, idx) => {
-      const sn = idx + 1;
-      const vName = v.name.replace(/"/g, '""');
-      const uCode = v.unique_code;
-      const recDate = v.recorded_date || '';
-      const opName = v.operator_name || '';
-      const factoryName = v.category || '';
-      
-      const matchedFolder = folders.find(cf => cf.category.toLowerCase() === factoryName.toLowerCase());
-      const factoryCode = matchedFolder?.factory_code || v.factory_code || '';
-
-      const csvRow = `${sn},"${vName}","${uCode}","${recDate}","${opName}","${factoryName}","${factoryCode}"\n`;
-      csvContent += csvRow;
-    });
-
-    const filename = selectedCategory ? selectedCategory.replace(/\s+/g, '_') : 'Search_Results';
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const downloadAnchor = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    downloadAnchor.setAttribute("href", url);
-    downloadAnchor.setAttribute("download", `CANTOR_DUST_Category_${filename}.csv`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    document.body.removeChild(downloadAnchor);
-    setSuccessMsg(`✓ Successfully downloaded spreadsheet listing ${filteredVideos.length} videos.`);
+    const filename = `Category_${selectedCategory ? selectedCategory.replace(/\s+/g, '_') : 'Search_Results'}`;
+    exportVideosToXlsx(filteredVideos, filename, folders);
+    setSuccessMsg(`✓ Successfully downloaded XLSX listing ${filteredVideos.length} videos.`);
   };
 
   return (
@@ -286,7 +261,7 @@ export default function CategoryManager({ videos, onRefresh }: CategoryManagerPr
                   className="bg-indigo-605/15 hover:bg-indigo-600/10 border border-indigo-505 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg text-xs font-bold px-3 py-2 tracking-wide flex items-center gap-2 self-start cursor-pointer transition-all"
                 >
                   <Download className="h-4 w-4" />
-                  Download XLS Spreadsheet
+                  Download XLSX Spreadsheet
                 </button>
               )}
             </div>

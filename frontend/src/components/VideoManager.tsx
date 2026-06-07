@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { apiFetch } from '../lib/api';
+import { exportVideosToXlsx } from '../lib/exportVideosXlsx';
 import { 
   Film, PlusCircle, Download, Search, AlertCircle, CheckCircle, 
   UploadCloud, FileVideo, Folder, FolderClosed, FolderOpen, 
@@ -763,32 +764,7 @@ export default function VideoManager({ videos, onRefresh }: VideoManagerProps) {
   };
 
   const handleExportVideos = (list: VideoType[], filename: string) => {
-    let csvContent = "\uFEFF";
-    csvContent += "S.N.,Video Name,Unique Code,Recorded Date,Operator Name,Factory Name,Factory Code\n";
-
-    list.forEach((v, idx) => {
-      const sn = idx + 1;
-      const vName = v.name.replace(/"/g, '""');
-      const uCode = v.unique_code;
-      const recDate = v.recorded_date || '';
-      const opName = v.operator_name || '';
-      const factoryName = v.category || '';
-      
-      const matchedFolder = customFoldersList.find(cf => cf.category.toLowerCase() === factoryName.toLowerCase());
-      const fCode = matchedFolder?.factory_code || v.factory_code || '';
-
-      const csvRow = `${sn},"${vName}","${uCode}","${recDate}","${opName}","${factoryName}","${fCode}"\n`;
-      csvContent += csvRow;
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `CANTOR_DUST_${filename}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    exportVideosToXlsx(list, filename, customFoldersList);
   };
 
   const renderVideosTable = (vids: VideoType[]) => {
@@ -1015,7 +991,7 @@ export default function VideoManager({ videos, onRefresh }: VideoManagerProps) {
             id="export-catalog-btn"
           >
             <Download className="h-4 w-4 text-indigo-400" />
-            Export Filtered CSV
+            Export Filtered XLSX
           </button>
         )}
       </div>
@@ -2188,7 +2164,7 @@ export default function VideoManager({ videos, onRefresh }: VideoManagerProps) {
                           className="inline-flex items-center gap-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-[10px] uppercase font-bold tracking-wider px-2 py-1 text-slate-300 rounded cursor-pointer transition-colors"
                         >
                           <Download className="h-3.5 w-3.5 text-indigo-400" />
-                          CSV export
+                          XLSX export
                         </button>
                         {canDelete && (
                           <button
@@ -2273,10 +2249,10 @@ export default function VideoManager({ videos, onRefresh }: VideoManagerProps) {
                                       handleExportVideos(subVids, `subfolder_${folderName}_${subName}`);
                                     }}
                                     className="inline-flex items-center gap-1 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-300 text-[10px] font-bold uppercase rounded py-0.5 px-2 cursor-pointer transition-all shrink-0"
-                                    title={`Export CSV index of the sub-folder: ${subName}`}
+                                    title={`Export XLSX index of the sub-folder: ${subName}`}
                                   >
                                     <Download className="h-3 w-3 text-indigo-400 shrink-0" />
-                                    CSV Export
+                                    XLSX Export
                                   </button>
 
                                   {canDelete && (

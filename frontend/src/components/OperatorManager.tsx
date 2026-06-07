@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../lib/api';
+import { exportVideosToXlsx } from '../lib/exportVideosXlsx';
 import { 
   UserCheck, Plus, Trash2, Search, Download, 
   FileVideo, AlertCircle, CheckCircle2, RefreshCw,
@@ -129,41 +130,15 @@ export default function OperatorManager({ currentUserRole }: OperatorManagerProp
     return isTextMatch && isOperatorMatch;
   });
 
-  // Export filtered search result table or entire selected operator to CSV structure
   const handleDownloadXls = () => {
     if (filteredVideos.length === 0) {
       setErrorMsg("No records to export.");
       return;
     }
 
-    let csvContent = "";
-    csvContent += "S.N.,Video Name,Unique Code,Recorded Date,Operator Name,Factory Name,Factory Code\n";
-
-    filteredVideos.forEach((v, idx) => {
-      const sn = idx + 1;
-      const vName = v.name.replace(/"/g, '""');
-      const uCode = v.unique_code;
-      const recDate = v.recorded_date || '';
-      const opName = v.operator_name || 'N/A';
-      const factoryName = v.category || 'N/A';
-      
-      const matchedFolder = folders.find(cf => cf.category.toLowerCase() === factoryName.toLowerCase());
-      const factoryCode = matchedFolder?.factory_code || v.factory_code || '';
-
-      const csvRow = `${sn},"${vName}","${uCode}","${recDate}","${opName}","${factoryName}","${factoryCode}"\n`;
-      csvContent += csvRow;
-    });
-
-    const filename = selectedOperator ? selectedOperator.replace(/\s+/g, '_') : 'All_Operators';
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const downloadAnchor = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    downloadAnchor.setAttribute("href", url);
-    downloadAnchor.setAttribute("download", `CANTOR_DUST_Operator_${filename}.csv`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    document.body.removeChild(downloadAnchor);
-    setSuccessMsg(`✓ Successfully downloaded spreadsheet listing ${filteredVideos.length} operator records.`);
+    const filename = `Operator_${selectedOperator ? selectedOperator.replace(/\s+/g, '_') : 'All_Operators'}`;
+    exportVideosToXlsx(filteredVideos, filename, folders);
+    setSuccessMsg(`✓ Successfully downloaded XLSX listing ${filteredVideos.length} operator records.`);
   };
 
   if (globalLoading) {
@@ -290,7 +265,7 @@ export default function OperatorManager({ currentUserRole }: OperatorManagerProp
                   className="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-lg text-xs font-bold px-3 py-2 tracking-wide flex items-center gap-2 self-start cursor-pointer transition-all"
                 >
                   <Download className="h-4 w-4" />
-                  Download Operator CSV
+                  Download Operator XLSX
                 </button>
               )}
             </div>
